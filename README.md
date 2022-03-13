@@ -5,8 +5,8 @@
 
 Json formatted tf-idf dataset
 
-Directory Structure
-CNNDM 
+CNNDM (CNN and DailyMail Dataset)
+
 - train.w2s.tfidf.jsonl
 - test.w2s.tfidf.jsonl
 - val.w2s.tfidf.jsonl
