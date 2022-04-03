@@ -30,9 +30,9 @@ https://drive.google.com/drive/folders/1NjecFgL-vTnBBxhgpvrtTpBft1vhnPi8?usp=sha
 
 Install the dependencies
 ```
-!pip install dgl
-!pip install rouge
-!pip install nltk
+pip install dgl
+pip install rouge
+pip install nltk
 import nltk
 nltk.download('stopwords')
 ```
