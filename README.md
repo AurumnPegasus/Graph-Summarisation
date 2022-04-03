@@ -25,7 +25,7 @@ Json formatted tf-idf dataset
 
 ### Reproducing Actual Paper Results
 
-Step 1. Download all the code and datasets from here - 
+Step 1. Download all the code,glove embeddings and datasets from here - 
 https://drive.google.com/drive/folders/1NjecFgL-vTnBBxhgpvrtTpBft1vhnPi8?usp=sharing
 
 Step 2. Train
