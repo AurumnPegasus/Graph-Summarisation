@@ -30,7 +30,7 @@ https://drive.google.com/drive/folders/1NjecFgL-vTnBBxhgpvrtTpBft1vhnPi8?usp=sha
 
 Step 2. Train
 - 300 Dimensional embeddings (Actual)
-python HeterSumGraph/train.py --cuda --gpu 0 --data_dir raw/CNNDM --cache_dir cache --embedding_path glove/glove.42B.300d.txt --model HSG --save_root models/ --log_root logs/ --lr_descent --grad_clip -m 3 --word_emb_dim 300
+```python HeterSumGraph/train.py --cuda --gpu 0 --data_dir raw/CNNDM --cache_dir cache --embedding_path glove/glove.42B.300d.txt --model HSG --save_root models/ --log_root logs/ --lr_descent --grad_clip -m 3 --word_emb_dim 300```
 
 - 100 Dimensional embeddings (Constrained)
-python HeterSumGraph/train.py --cuda --gpu 0 --data_dir raw/CNNDM --cache_dir cache --embedding_path glove/glove.6B.100d.txt --model HSG --save_root models/ --log_root logs/ --lr_descent --grad_clip -m 3 --word_emb_dim 100
+```python HeterSumGraph/train.py --cuda --gpu 0 --data_dir raw/CNNDM --cache_dir cache --embedding_path glove/glove.6B.100d.txt --model HSG --save_root models/ --log_root logs/ --lr_descent --grad_clip -m 3 --word_emb_dim 100```
