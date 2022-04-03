@@ -28,6 +28,14 @@ Json formatted tf-idf dataset
 Step 1. Download all the code,glove embeddings and datasets from here - 
 https://drive.google.com/drive/folders/1NjecFgL-vTnBBxhgpvrtTpBft1vhnPi8?usp=sharing
 
+Install the dependencies
+#!pip install dgl
+#!pip install rouge
+#!pip install nltk
+#import nltk
+#nltk.download('stopwords')
+
+
 Step 2. Train
 - 300 Dimensional embeddings (Actual) 
  
