@@ -64,8 +64,15 @@ class Graph(utils.data.Dataset):
             adjacency.append(current)
         adjacency = np.array(adjacency)
 
+        edge_list = []
+        for i in range(adjacency.shape[0]):
+            for j in range(adjacency.shape[1]):
+                if adjacency[i, j]:
+                    edge_list.append((i, j))
+        edge_list = np.array(edge_list)
+
         actual_labels = np.zeros(len(sentences))
         for label in labels:
             actual_labels[label] = 1
 
-        return (embeddings, adjacency, word_embeddings), actual_labels
+        return (embeddings, edge_list, word_embeddings), actual_labels
