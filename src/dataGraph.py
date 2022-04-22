@@ -1,24 +1,23 @@
-import pandas as pd
-from icecream import ic
 from constants import TRAIN_EDGE_PATH, TEST_EDGE_PATH, VAL_EDGE_PATH
+
+import pandas as pd
 import numpy as np
 from dataSplit import Data
 from sentence_transformers import SentenceTransformer
 import torch
 import torch.utils as utils
 
+
 class Graph(utils.data.Dataset):
-    def __init__(self,
-                 dataset,
-                 df):
+    def __init__(self, dataset, df):
         self.dataset = dataset
         self.df = df
 
         self.w2emb = {}
 
-        self.encoder = SentenceTransformer('all-MiniLM-L6-v2')
+        self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
 
-        with open('./glove.6B.50d.txt', 'r') as f:
+        with open("./glove.6B.50d.txt", "r") as f:
             for line in f:
                 split_line = line.split()
                 word = split_line[0]
@@ -29,7 +28,7 @@ class Graph(utils.data.Dataset):
         return len(self.dataset)
 
     def prepEmbeddings(self):
-        with open('./glove.6B.50d.txt', 'r') as f:
+        with open("./glove.6B.50d.txt", "r") as f:
             for line in f:
                 split_line = line.split()
                 word = split_line[0]
@@ -41,8 +40,8 @@ class Graph(utils.data.Dataset):
         sentences = self.dataset.iloc[index]
         edges = self.df.iloc[index]
 
-        labels = sentences['label']
-        sentences = sentences['text']
+        labels = sentences["label"]
+        sentences = sentences["text"]
         embeddings = self.encoder.encode(sentences)
 
         vocab = set()
@@ -70,11 +69,12 @@ class Graph(utils.data.Dataset):
             adjacency.append(current)
         adjacency = np.array(adjacency)
 
-        actual_labels = [0]*len(sentences)
+        actual_labels = [0] * len(sentences)
         for label in labels:
             actual_labels[label] = 1
 
         return (embeddings, adjacency, word_embeddings), actual_labels
+
 
 if __name__ == "__main__":
     d = Data()
@@ -82,4 +82,3 @@ if __name__ == "__main__":
     train, test, val = d.getDFs()
     val_df = pd.read_json(path_or_buf=VAL_EDGE_PATH, lines=True)
     val_loader = Graph(val, val_df)
-

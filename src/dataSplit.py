@@ -3,11 +3,14 @@ from constants import TRAIN_PATH, TEST_PATH, VALIDATION_PATH
 from icecream import ic
 import pandas as pd
 
+
 class Data:
-    def __init__(self,
-                 train_path=TRAIN_PATH,
-                 test_path=TEST_PATH,
-                 validation_path=VALIDATION_PATH):
+    def __init__(
+        self,
+        train_path=TRAIN_PATH,
+        test_path=TEST_PATH,
+        validation_path=VALIDATION_PATH,
+    ):
         self.train_path = train_path
         self.test_path = test_path
         self.validation_path = validation_path
@@ -29,6 +32,7 @@ class Data:
         self.train = self.readData(self.train_path)
         self.test = self.readData(self.test_path)
         self.val = self.readData(self.validation_path)
+
 
 if __name__ == "__main__":
     d = Data()
