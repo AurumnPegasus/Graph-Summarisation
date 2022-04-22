@@ -7,6 +7,7 @@ TEST_PATH = "./data/val.label.jsonl"
 VALIDATION_PATH = "./data/val.label.jsonl"
 
 VOCAB_PATH = "./data/vocab"
+GLOVE_PATH = "./data/glove.6B.50d.txt"
 
 TRAIN_EDGE_PATH = "./data/val.w2s.tfidf.jsonl"
 TEST_EDGE_PATH = "./data/val.w2s.tfidf.jsonl"
