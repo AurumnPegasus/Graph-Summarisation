@@ -1,64 +1,57 @@
-from torch_geometric.nn import GATConv
-import torch.nn as nn
-from torch.nn import Linear
 import torch
-import numpy as np
+import torch.nn as nn
+from torch_geometric.nn import GATConv
 
 
 class HeterSumGraph(nn.Module):
-    def __init__(self, Xw, Xs, E, heads):
-        """
-        Xw: (num_words, word_embed_size)
-        Xs: (num_sentences, sent_embed_size)
-        E: (num_sentences, num_words)
-
-        for validation's 0th sample these are
-        (29, 384) and (29, 253) and (29, 253)
-        respectively
-
-        NOTE: does not handle edges yet!
-        to be updated in the next version
-
-        NOTE: only does 1 layer of message passing,
-        as mentioned in the paper.
-        """
+    def __init__(self, dw, ds, dh, de, heads):
         super().__init__()
 
-        Xw = torch.from_numpy(Xw).to(torch.float)
-        Xs = torch.from_numpy(Xs).to(torch.float)
-        E = torch.from_numpy(E).to(torch.long)
+        self.linear1 = nn.Linear(dw, dh)
+        self.linear2 = nn.Linear(ds, dh)
 
-        self.gat_sent2word = GATConv(
-            in_channels=Xs.shape[1],
-            out_channels=Xw.shape[1],
-            heads=heads,
+        self.gat1 = GATConv(
+            in_channels=(dh, dh), out_channels=dh, heads=heads, edge_dim=de
         )
 
-        self.gat_word2sent = GATConv(
-            in_channels=Xw.shape[1],
-            out_channels=Xs.shape[1],
-            heads=heads,
+        self.gat2 = GATConv(
+            in_channels=(dh, dh), out_channels=dh, heads=heads, edge_dim=de
         )
 
-        self.linear_word = Linear(in_features=Xw.shape[1], out_features=Xw.shape[1])
-        self.linear_sent = Linear(in_features=Xs.shape[1], out_features=Xs.shape[1])
+        self.linear3 = nn.Linear(dh, dh)
+        self.linear4 = nn.Linear(dh, dh)
 
-        self.hidden_word = Xw
-        self.hidden_sent = Xs
+    def forward(self, Xw, Xs, E):
+        Hw = self.linear1(Xw)
+        Hs = self.linear2(Xs)
 
-        self.E = torch.transpose(E, 0, 1)
-        self.Erev = []
-        for item in E:
-            self.Erev.append((item[1], item[0]))
-        self.Erev = torch.transpose(torch.tensor(self.Erev), 0, 1)
+        nHw = self.gat2((Hs, Hw), E)
+        nHs = self.gat1((Hw, Hs), E)
 
-    def forward(self):
-        # passing word and sentence through the GAT layers simultaneously
-        temp_word_next = self.gat_sent2word(self.hidden_sent, edge_index=self.E)
-        temp_sent_next = self.gat_word2sent(self.hidden_word, edge_index=self.Erev)
+        Hw = self.linear4(nHw + Hw)
+        Hs = self.linear3(nHs + Hs)
 
-        # adding residual connections
-        hidden_word_next = self.linear_word(temp_word_next + self.hidden_word)
-        hidden_sent_next = self.linear_word(temp_sent_next + self.hidden_sent)
+        return Hw, Hs
 
-        return hidden_word_next, hidden_sent_next
+
+def test():
+    dw = 50
+    ds = 384
+    dh = 64
+    de = 64
+    heads = 1
+
+    model = HeterSumGraph(dw, ds, dh, de, heads)
+
+    n = 50
+    m = 5000
+    Xw = torch.rand(m, dw)
+    Xs = torch.rand(n, ds)
+    E = torch.randint(0, 1, (2, m + n))
+    Hw, Hs = model.forward(Xw, Xs, E)
+    assert Hw.shape == (5000, 64), "something went wrong for Hw"
+    assert Hs.shape == (50, 64), "something went wrong for Hs"
+    print("success")
+
+
+# test()

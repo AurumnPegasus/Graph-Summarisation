@@ -15,33 +15,6 @@ print("read df2")
 data_loader = Graph(df1, df2)
 print("data loader setup done")
 
-
-# count = 0
-# for x, y in data_loader:
-#     embeddings, edge_list, word_embeddings = x
-#     print(embeddings.shape)
-#     print(edge_list.shape)
-#     print(word_embeddings.shape)
-#     print(y.shape)
-#     print()
-
-#     """
-#     PRINTS OUT:
-#     (29, 384)
-#     (29, 253)
-#     (253, 50)
-#     (29,)
-
-#     (17, 384)
-#     (17, 115)
-#     (115, 50)
-#     (17,)
-#     """
-
-#     if count == 1:
-#         break
-#     count += 1
-
 for x, y in data_loader:
     embeddings, edge_list, word_embeddings = x
     graph = HeterSumGraph(embeddings, word_embeddings, edge_list, heads=ATTENTION_HEADS)
