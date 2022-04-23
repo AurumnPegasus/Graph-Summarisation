@@ -1,12 +1,12 @@
-import torch
 from config import SAMPLE_DATA_PATH, SAMPLE_EDGE_PATH, EMBEDDING_PATH
 
+import torch
+from torch import utils
+from torch_geometric.utils import grid
 from sentence_transformers import SentenceTransformer
 
-from torch import utils
 import json
 import numpy as np
-
 from tqdm import tqdm
 
 
@@ -46,7 +46,8 @@ class DataLoader(utils.data.Dataset):
         """
         self.embeddings = [line.split() for line in self.embeddings]
         self.embeddings = {
-            line[0]: np.array(line[1:], dtype=np.float64) for line in self.embeddings
+            line[0]: np.array(line[1:], dtype=np.float64)
+            for line in tqdm(self.embeddings, "processing embeddings")
         }
 
     def get_Xw(self, edge):
@@ -70,15 +71,21 @@ class DataLoader(utils.data.Dataset):
     def get_E(self, data, edge):
         """
         gets the edge list, a list of (i, j)
+        and the reversed edge list of (j, i)
         where i is the sentence number
         and j is the word number
         """
-        E = set()
-        for i, sentence in enumerate(edge.values()):
-            for j, word in enumerate(sentence):
-                E.add((i, j))
+        E = []
+        Erev = []
+        for i, sentence in enumerate(data["text"]):
+            for j, word in enumerate(sentence.split()):
+                if word in edge[str(i)]:
+                    E.append((i, j))
+                    Erev.append((j, i))
+        E = torch.transpose(torch.tensor(E), 0, 1)
+        Erev = torch.transpose(torch.tensor(Erev), 0, 1)
 
-        return torch.transpose(torch.tensor(list(E)), 0, 1)
+        return E, Erev
 
     def get_labels(self, data):
         """
@@ -102,26 +109,24 @@ class DataLoader(utils.data.Dataset):
         """
         data = json.loads(self.data[i])
         edge = json.loads(self.edges[i])
+        Xw = self.get_Xw(edge)
+        Xs = self.get_Xs(data)
+        E, Erev = self.get_E(data, edge)
+        y = self.get_labels(data)
 
-        return (
-            self.get_Xw(edge),
-            self.get_Xs(data),
-            self.get_E(data, edge),
-        ), self.get_labels(data)
+        return (Xw, Xs, E, Erev), y
 
     def __len__(self):
         return len(self.data)
 
 
-def test():
+if __name__ == "__main__":
     data_loader = DataLoader(SAMPLE_DATA_PATH, SAMPLE_EDGE_PATH, EMBEDDING_PATH)
-    for (Xw, Xs, E), y in data_loader:
+    for (Xw, Xs, E, Erev), y in data_loader:
         assert Xw.shape == (488, 50), "Xw is not built properly"
         assert Xs.shape == (29, 384), "Xs is not built properly"
         assert E.shape == (2, 488), "E is not built properly"
+        assert Erev.shape == (2, 488), "Erev is not built properly"
         assert y.shape == (29,), "y is not built properly"
         break
     print("success")
-
-
-# test()

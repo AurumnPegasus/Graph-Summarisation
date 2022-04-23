@@ -24,7 +24,7 @@ class HeterSumGraph(nn.Module):
         self.linear4 = nn.Linear(dh, dh)
         print("created hidden layers")
 
-    def forward(self, Xw, Xs, E):
+    def forward(self, Xw, Xs, E, Erev):
         # passing through the first linear layer
         Hw = self.linear1(Xw)
         Hs = self.linear2(Xs)
@@ -32,8 +32,8 @@ class HeterSumGraph(nn.Module):
         # passing through the first gat layers
         # for both sentence and word embeddings
         # simultaneously
-        nHw = self.gat2((Hs, Hw), E)
-        nHs = self.gat1((Hw, Hs), E)
+        nHw = self.gat1((Hs, Hw), E)
+        nHs = self.gat2((Hw, Hs), Erev)
 
         # adding residual connections
         Hw = self.linear4(nHw + Hw)
@@ -43,7 +43,7 @@ class HeterSumGraph(nn.Module):
         return Hw, Hs
 
 
-def test():
+if __name__ == "__main__":
     dw = 50
     ds = 384
     dh = 64
@@ -56,11 +56,9 @@ def test():
     m = 500
     Xw = torch.rand(m, dw)
     Xs = torch.rand(n, ds)
-    E = torch.randint(0, 1, (2, m))
-    Hw, Hs = model.forward(Xw, Xs, E)
+    E = torch.randint(0, 50, (2, m))
+    Erev = torch.randint(0, 50, (2, m))
+    Hw, Hs = model.forward(Xw, Xs, E, Erev)
     assert Hw.shape == (m, dh), "something went wrong for Hw"
     assert Hs.shape == (n, dh), "something went wrong for Hs"
     print("success")
-
-
-# test()
