@@ -103,6 +103,7 @@ class DataLoader(utils.data.Dataset):
                 Xw: the word embeddings
                 Xs: the sentence embeddings
                 E: the edge list
+                Erev: the edge list reversed
             ),
             y: the labels
         )
