@@ -9,6 +9,7 @@ class HeterSumGraph(nn.Module):
 
         self.linear1 = nn.Linear(dw, dh)
         self.linear2 = nn.Linear(ds, dh)
+        print("created initial linear layers")
 
         self.gat1 = GATConv(
             in_channels=(dh, dh), out_channels=dh, heads=heads, edge_dim=de
@@ -17,20 +18,28 @@ class HeterSumGraph(nn.Module):
         self.gat2 = GATConv(
             in_channels=(dh, dh), out_channels=dh, heads=heads, edge_dim=de
         )
+        print("created gat layers")
 
         self.linear3 = nn.Linear(dh, dh)
         self.linear4 = nn.Linear(dh, dh)
+        print("created hidden layers")
 
     def forward(self, Xw, Xs, E):
+        # passing through the first linear layer
         Hw = self.linear1(Xw)
         Hs = self.linear2(Xs)
 
+        # passing through the first gat layers
+        # for both sentence and word embeddings
+        # simultaneously
         nHw = self.gat2((Hs, Hw), E)
         nHs = self.gat1((Hw, Hs), E)
 
+        # adding residual connections
         Hw = self.linear4(nHw + Hw)
         Hs = self.linear3(nHs + Hs)
 
+        # returning the final states after the iteration
         return Hw, Hs
 
 
@@ -44,13 +53,13 @@ def test():
     model = HeterSumGraph(dw, ds, dh, de, heads)
 
     n = 50
-    m = 5000
+    m = 500
     Xw = torch.rand(m, dw)
     Xs = torch.rand(n, ds)
-    E = torch.randint(0, 1, (2, m + n))
+    E = torch.randint(0, 1, (2, m))
     Hw, Hs = model.forward(Xw, Xs, E)
-    assert Hw.shape == (5000, 64), "something went wrong for Hw"
-    assert Hs.shape == (50, 64), "something went wrong for Hs"
+    assert Hw.shape == (m, dh), "something went wrong for Hw"
+    assert Hs.shape == (n, dh), "something went wrong for Hs"
     print("success")
 
 
