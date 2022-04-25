@@ -91,13 +91,3 @@ for epoch in range(EPOCHS):
 path = '../models/ext_model_' + str(EPOCHS) +  'e.pth'
 save_model(model, path)
 
-# model.load_state_dict(torch.load(path))
-# # model.eval()
-# # print(model)
-
-
-## Evaluation
-
-# test_loader = DataLoader(SAMPLE_TEST_DATA_PATH,SAMPLE_TEST_EDGE_PATH,EMBEDDING_PATH)
-# with torch.no_grad():
-#print("Eval completed")
