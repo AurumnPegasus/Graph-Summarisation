@@ -95,3 +95,5 @@ with torch.no_grad():
     test_loss = test_loss / total_examples
     print("Epochs test loss {}".format(test_loss))
     
+
+print("Eval completed")
