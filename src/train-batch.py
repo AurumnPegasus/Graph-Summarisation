@@ -20,8 +20,6 @@ def save_model(model, save_file):
     with open(save_file, 'wb') as f:
         torch.save(model.state_dict(), f)
 
-# Training
-
 criterion = torch.nn.BCEWithLogitsLoss()
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=5e-4)
@@ -29,71 +27,77 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=5e-4)
 model.train()
 
 train_loader = data_loader
+test_loader = DataLoader(SAMPLE_TEST_DATA_PATH,SAMPLE_TEST_EDGE_PATH,EMBEDDING_PATH)
 
 EPOCHS = 10
 
 for epoch in range(EPOCHS):
-    epoch_loss = 0.0
+    #epoch_loss = 0.0
+    train_epoch_loss = 0.0
+    train_examples = 0
     train_loss = 0.0
-    total_examples = 0
+    #testepoch_loss = 0.0
+    test_loss = 0.0
+    test_epoch_loss = 0.0
+    test_examples = 0
 
+    # Training
     for (Xw, Xs, E, Erev), y in train_loader:
         preds = model.forward(Xw, Xs, E, Erev)
-        print(preds)
-        print(y)
+        #print(preds)
+        #print(y)
         #print(preds)
         label = y
 
         # compute loss
         loss  = criterion(preds, label.float().unsqueeze(1))
-        print(loss)
+        #print(loss)
 
         optimizer.zero_grad()
 
         # loss of the batch
         train_loss += float(loss.item())*y.shape[0]
-        total_examples += y.shape[0]
-        print(train_loss)
+        train_examples += y.shape[0]
+        #print(train_loss)
 
         loss.backward() 
         optimizer.step()    
 
-    # Average loss over an epoch
-    #print(len(train_loader))
-    train_loss = train_loss / total_examples
-    print("Epochs loss {}".format(train_loss))
 
-path = '../models/ext_model_' + str(EPOCHS) +  'e.pth'
-save_model(model, path)
-
-model.load_state_dict(torch.load(path))
-model.eval()
-print(model)
-
-
-## Evaluation
-
-test_loader = DataLoader(SAMPLE_TEST_DATA_PATH,SAMPLE_TEST_EDGE_PATH,EMBEDDING_PATH)
-with torch.no_grad():
-
-    epoch_loss = 0.0
-    test_loss = 0.0
-    total_examples = 0
-
+    # Evaluation
+    model.eval() # prep model for evaluation
     for (Xw, Xs, E, Erev), y in test_loader:
         preds = model.forward(Xw, Xs, E, Erev)
         label = y
 
         loss  = criterion(preds, label.float().unsqueeze(1))
-        print(loss)
+        #print(loss)
 
         # loss of the batch
         test_loss += float(loss.item())*y.shape[0]
-        total_examples += y.shape[0]
-        print(test_loss)
-    
-    test_loss = test_loss / total_examples
-    print("Epochs test loss {}".format(test_loss))
+        test_examples += y.shape[0]
+        #print(test_loss)
     
 
-print("Eval completed")
+    # Average loss over an epoch
+    #print(len(train_loader))
+    train_epoch_loss = train_loss / train_examples
+    print("Epochs train loss {} ".format( train_epoch_loss))
+
+    test_epoch_loss = test_loss / test_examples
+    print("Epochs test loss {}".format(test_epoch_loss))
+    
+
+path = '../models/ext_model_' + str(EPOCHS) +  'e.pth'
+save_model(model, path)
+
+# model.load_state_dict(torch.load(path))
+# # model.eval()
+# # print(model)
+
+
+## Evaluation
+
+# test_loader = DataLoader(SAMPLE_TEST_DATA_PATH,SAMPLE_TEST_EDGE_PATH,EMBEDDING_PATH)
+# with torch.no_grad():
+#print("Eval completed")
