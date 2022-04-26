@@ -2,92 +2,119 @@ from config import EMBEDDING_PATH, SAMPLE_DATA_PATH, SAMPLE_EDGE_PATH,SAMPLE_TES
 from data import DataLoader
 from model import HeterSumGraph
 import torch
+import matplotlib.pyplot as plt
 
 
-dw = 50
-ds = 384
-dh = 64
-de = 64
-heads = 1
+if __name__ == "__main__":
 
-data_loader = DataLoader(SAMPLE_DATA_PATH, SAMPLE_EDGE_PATH, EMBEDDING_PATH)
-print("created data loader")
+    dw = 50
+    ds = 384
+    dh = 64
+    de = 64
+    heads = 1
 
-model = HeterSumGraph(dw, ds, dh, de, heads)
-print("created model")
+    data_loader = DataLoader(SAMPLE_DATA_PATH, SAMPLE_EDGE_PATH, EMBEDDING_PATH)
+    print("created data loader")
 
-def save_model(model, save_file):
-    with open(save_file, 'wb') as f:
-        torch.save(model.state_dict(), f)
+    model = HeterSumGraph(dw, ds, dh, de, heads)
+    print("created model")
 
-criterion = torch.nn.BCEWithLogitsLoss()
+    def save_model(model, save_file):
+        with open(save_file, 'wb') as f:
+            torch.save(model.state_dict(), f)
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=5e-4)
+    criterion = torch.nn.BCEWithLogitsLoss()
 
-model.train()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=5e-4)
 
-train_loader = data_loader
-test_loader = DataLoader(SAMPLE_TEST_DATA_PATH,SAMPLE_TEST_EDGE_PATH,EMBEDDING_PATH)
+    model.train()
 
-EPOCHS = 10
+    train_loader = data_loader
+    test_loader = DataLoader(SAMPLE_TEST_DATA_PATH,SAMPLE_TEST_EDGE_PATH,EMBEDDING_PATH)
 
-for epoch in range(EPOCHS):
-    #epoch_loss = 0.0
-    train_epoch_loss = 0.0
-    train_examples = 0
-    train_loss = 0.0
-    #testepoch_loss = 0.0
-    test_loss = 0.0
-    test_epoch_loss = 0.0
-    test_examples = 0
+    EPOCHS = 5
 
-    # Training
-    for (Xw, Xs, E, Erev), y in train_loader:
-        preds = model.forward(Xw, Xs, E, Erev)
-        #print(preds)
-        #print(y)
-        #print(preds)
-        label = y
-
-        # compute loss
-        loss  = criterion(preds, label.float().unsqueeze(1))
-        #print(loss)
-
-        optimizer.zero_grad()
-
-        # loss of the batch
-        train_loss += float(loss.item())*y.shape[0]
-        train_examples += y.shape[0]
-        #print(train_loss)
-
-        loss.backward() 
-        optimizer.step()    
-
-
-    # Evaluation
-    model.eval() # prep model for evaluation
-    for (Xw, Xs, E, Erev), y in test_loader:
-        preds = model.forward(Xw, Xs, E, Erev)
-        label = y
-
-        loss  = criterion(preds, label.float().unsqueeze(1))
-        #print(loss)
-
-        # loss of the batch
-        test_loss += float(loss.item())*y.shape[0]
-        test_examples += y.shape[0]
-        #print(test_loss)
+    epoch_list = []
+    train_loss_list = []
+    test_loss_list = []
     
 
-    # Average loss over an epoch
-    #print(len(train_loader))
-    train_epoch_loss = train_loss / train_examples
-    print("Epochs train loss {} ".format( train_epoch_loss))
+    for epoch in range(EPOCHS):
+        
+        #epoch_loss = 0.0
+        train_epoch_loss = 0.0
+        train_examples = 0
+        train_loss = 0.0
+        #testepoch_loss = 0.0
+        test_loss = 0.0
+        test_epoch_loss = 0.0
+        test_examples = 0
 
-    test_epoch_loss = test_loss / test_examples
-    print("Epochs test loss {}".format(test_epoch_loss))
-    
+        # Training
+        for (Xw, Xs, E, Erev), y in train_loader:
+            preds = model.forward(Xw, Xs, E, Erev)
+            #print(preds)
+            #print(y)
+            #print(preds)
+            label = y
 
-path = '../models/ext_model_' + str(EPOCHS) +  'e.pth'
-save_model(model, path)
+            # compute loss
+            loss  = criterion(preds, label.float().unsqueeze(1))
+            #print(loss)
+
+            optimizer.zero_grad()
+
+            # loss of the batch
+            train_loss += float(loss.item())*y.shape[0]
+            train_examples += y.shape[0]
+            #print(train_loss)
+
+            loss.backward() 
+            optimizer.step()    
+
+
+        # Evaluation
+        model.eval() # prep model for evaluation
+        for (Xw, Xs, E, Erev), y in test_loader:
+            preds = model.forward(Xw, Xs, E, Erev)
+            label = y
+
+            loss  = criterion(preds, label.float().unsqueeze(1))
+            #print(loss)
+
+            # loss of the batch
+            test_loss += float(loss.item())*y.shape[0]
+            test_examples += y.shape[0]
+            #print(test_loss)
+        
+
+        epoch_list.append(epoch)
+
+        # Average loss over an epoch
+        #print(len(train_loader))
+        train_epoch_loss = train_loss / train_examples
+        print("Epochs train loss {} ".format( train_epoch_loss))
+        train_loss_list.append(train_epoch_loss)
+
+
+        test_epoch_loss = test_loss / test_examples
+        print("Epochs test loss {}".format(test_epoch_loss))
+        test_loss_list.append(test_epoch_loss)
+        
+
+
+
+    path = '../models/ext_model_' + str(EPOCHS) +  'e.pth'
+    save_model(model, path)
+
+    plt.figure(figsize=(10,5))
+    plt.title("Training and Validation Loss")
+    plt.plot(epoch_list, train_loss_list)
+    plt.plot(epoch_list,test_loss_list)
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.legend(['Train Loss','Test Loss'])
+
+    path2 = '../results/GNN_loss' + str(EPOCHS) +  'e.png'
+    plt.savefig(path2)
 
