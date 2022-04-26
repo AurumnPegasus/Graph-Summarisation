@@ -61,15 +61,22 @@ if __name__ == "__main__":
         all_test_preds= []
         all_test_y = []
 
+        #cnt = 0
+
         for (Xw, Xs, E, Erev), y in train_loader:
+            #print(cnt)
+            #cnt+=1
             preds = model.forward(Xw, Xs, E, Erev)
-            print(preds)
+            #print(preds)
             #print(y)
             
             # Accuracy
             n = preds.squeeze(1).detach().numpy().tolist()
-            p = [1  if item > 1 else 0 for item in n]
+            #print(n)
+            p = [1  if item > 0.5 else 0 for item in n]
             a = y.numpy().tolist()
+            #print(p)
+            #print(a)
             for i,v in enumerate(a):
                 if p[i]==v:
                     correct_train +=1    
@@ -91,14 +98,15 @@ if __name__ == "__main__":
             loss.backward() 
             optimizer.step()    
 
-        # Training accuracy at epochs
-        train_acc = correct_train/train_examples
-        print("Train Accuracy {}".format(train_acc))
-        train_acc_list.append(train_acc)
+       
 
         # Evaluation
+        print("Evaluation")
         model.eval() # prep model for evaluation
+        cnt = 0
         for (Xw, Xs, E, Erev), y in test_loader:
+            print(cnt)
+            cnt+=1
             preds = model.forward(Xw, Xs, E, Erev)
             label = y
 
@@ -106,6 +114,8 @@ if __name__ == "__main__":
             n = preds.squeeze(1).detach().numpy().tolist()
             p = [1 if item > 1 else 0 for item in n]
             a = y.numpy().tolist()
+            print(p)
+            print(a)
             for i,v in enumerate(a):
                 if p[i]==v and p[i]==1:
                     correct_test +=1    
@@ -118,8 +128,11 @@ if __name__ == "__main__":
 
 
             # loss of the batch
+            
             test_loss += float(loss.item())*y.shape[0]
-            test_examples += y.shape[0]
+
+            #print(len(y))
+            test_examples += len(y)
             #print(test_loss)
         
 
@@ -136,8 +149,14 @@ if __name__ == "__main__":
         print("Epochs test loss {}".format(test_epoch_loss))
         test_loss_list.append(test_epoch_loss)
 
+         # Training accuracy at epochs
+        train_acc = correct_train/train_examples
+        print("Train Accuracy {}".format(train_acc))
+        train_acc_list.append(train_acc)
 
         # Test accuracy at epochs
+        print(test_examples)
+        print(correct_test)
         test_acc = correct_test/test_examples
         print("Test Accuracy {}".format(test_acc))
         test_acc_list.append(test_acc)
@@ -148,6 +167,7 @@ if __name__ == "__main__":
     df_results = pd.DataFrame(list(zip(train_loss_list,test_loss_list,train_acc_list,test_acc_list)),columns=['Train Loss','Test Loss','Train Accuracy','Test Accuracy'])
     path1 = '../results/report' + str(EPOCHS) +  'e.csv'
     df_results.to_csv(path1,index=None,sep=',')
+
 
     class_report = pd.DataFrame(classification_report(all_test_y, all_test_preds,output_dict=True)).transpose()
     path2 = '../results/classification_report' + str(EPOCHS) +  'e.csv'
