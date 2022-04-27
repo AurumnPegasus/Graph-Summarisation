@@ -9,9 +9,14 @@ from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import numpy as np
 
+
+def save_model(model, save_file):
+        with open(save_file, 'wb') as f:
+            torch.save(model.state_dict(), f)
+
 if __name__ == "__main__":
 
-    dw = 50
+    dw = 100
     ds = 384
     dh = 64
     de = 64
@@ -23,20 +28,21 @@ if __name__ == "__main__":
     model = HeterSumGraph(dw, ds, dh, de, heads)
     print("created model")
 
-    def save_model(model, save_file):
-        with open(save_file, 'wb') as f:
-            torch.save(model.state_dict(), f)
+   
 
-    criterion = torch.nn.BCEWithLogitsLoss()
+    #criterion = torch.nn.BCEWithLogitsLoss()
+    criterion = torch.nn.BCELoss()
+    #criterion = torch.nn.CrossEntropyLoss()
 
+
+    #optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=5e-4)
 
-    model.train()
 
     train_loader = data_loader
     test_loader = DataLoader(SAMPLE_TEST_DATA_PATH,SAMPLE_TEST_EDGE_PATH,EMBEDDING_PATH)
 
-    EPOCHS = 10
+    EPOCHS = 5
 
     epoch_list = []
     train_loss_list = []
@@ -61,22 +67,24 @@ if __name__ == "__main__":
         all_test_preds= []
         all_test_y = []
 
-        #cnt = 0
-
+        cnt = 0
+        model.train()
         for (Xw, Xs, E, Erev), y in train_loader:
-            #print(cnt)
-            #cnt+=1
+            print(cnt)
+            cnt+=1
+            
+
             preds = model.forward(Xw, Xs, E, Erev)
             #print(preds)
             #print(y)
             
-            # Accuracy
+            #Accuracy
             n = preds.squeeze(1).detach().numpy().tolist()
-            #print(n)
+            print(n)
             p = [1  if item > 0.5 else 0 for item in n]
             a = y.numpy().tolist()
-            #print(p)
-            #print(a)
+            print(p)
+            print(a)
             for i,v in enumerate(a):
                 if p[i]==v:
                     correct_train +=1    
@@ -86,54 +94,57 @@ if __name__ == "__main__":
             # compute loss
             loss  = criterion(preds, label.float().unsqueeze(1))
             #print(loss)
-
-            
             optimizer.zero_grad()
+            
+            loss.backward() 
+            optimizer.step()    
 
             # loss of the batch
             train_loss += float(loss.item())*y.shape[0]
             train_examples += y.shape[0]
             #print(train_loss)
 
-            loss.backward() 
-            optimizer.step()    
+            
 
        
 
-        # Evaluation
+        #Evaluation
         print("Evaluation")
         model.eval() # prep model for evaluation
         cnt = 0
-        for (Xw, Xs, E, Erev), y in test_loader:
-            print(cnt)
-            cnt+=1
-            preds = model.forward(Xw, Xs, E, Erev)
-            label = y
 
-             # Accuracy
-            n = preds.squeeze(1).detach().numpy().tolist()
-            p = [1 if item > 1 else 0 for item in n]
-            a = y.numpy().tolist()
-            print(p)
-            print(a)
-            for i,v in enumerate(a):
-                if p[i]==v and p[i]==1:
-                    correct_test +=1    
+        with torch.no_grad():
+            for (Xw, Xs, E, Erev), y in test_loader:
+                #print(cnt)
+                cnt+=1
+                preds = model.forward(Xw, Xs, E, Erev)
+                label = y
 
-            loss  = criterion(preds, label.float().unsqueeze(1))
-            #print(loss)
+                # Accuracy
+                n = preds.squeeze(1).detach().numpy().tolist()
+                p = [1 if item > 0.5 else 0 for item in n]
+                a = y.numpy().tolist()
+                print(n)
+                print(p)
+                print(a)
+                for i,v in enumerate(a):
+                    if p[i]==v and p[i]==1:
+                        correct_test +=1    
 
-            all_test_preds = np.append(all_test_preds,p)
-            all_test_y = np.append(all_test_y,np.array(y))
+                loss  = criterion(preds, label.float().unsqueeze(1))
+                #print(loss)
+
+                all_test_preds = np.append(all_test_preds,p)
+                all_test_y = np.append(all_test_y,np.array(y))
 
 
-            # loss of the batch
-            
-            test_loss += float(loss.item())*y.shape[0]
+                # loss of the batch
+                
+                test_loss += float(loss.item())*y.shape[0]
 
-            #print(len(y))
-            test_examples += len(y)
-            #print(test_loss)
+                #print(len(y))
+                test_examples += len(y)
+                #print(test_loss)
         
 
         epoch_list.append(epoch)
@@ -161,8 +172,11 @@ if __name__ == "__main__":
         print("Test Accuracy {}".format(test_acc))
         test_acc_list.append(test_acc)
 
+
+
     path = '../models/ext_model_' + str(EPOCHS) +  'e.pth'
     save_model(model, path)
+
 
     df_results = pd.DataFrame(list(zip(train_loss_list,test_loss_list,train_acc_list,test_acc_list)),columns=['Train Loss','Test Loss','Train Accuracy','Test Accuracy'])
     path1 = '../results/report' + str(EPOCHS) +  'e.csv'
