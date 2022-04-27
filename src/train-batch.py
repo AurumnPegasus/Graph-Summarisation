@@ -10,6 +10,9 @@ import seaborn as sns
 import numpy as np
 
 
+from torch import cuda
+device = 'cuda' if cuda.is_available() else 'cpu'
+
 def save_model(model, save_file):
         with open(save_file, 'wb') as f:
             torch.save(model.state_dict(), f)
@@ -28,6 +31,7 @@ if __name__ == "__main__":
     model = HeterSumGraph(dw, ds, dh, de, heads)
     print("created model")
 
+    model.to(device)
    
 
     criterion = torch.nn.BCEWithLogitsLoss()
@@ -78,10 +82,14 @@ if __name__ == "__main__":
             preds = model.forward(Xw, Xs, E, Erev)
             print("Sigmoid scores")
             print(torch.nn.Sigmoid()(preds))
-
             #print(preds)
-            #print(y)
-            
+
+            # For GPU
+            Xw = Xw.to(device,dtype = torch.long)
+            Xs =  Xs.to(device,dtype = torch.long)
+            E  =  E.to(device,dtype = torch.long)
+            Erev = Erev.to(device,dtype = torch.long)
+
             #Accuracy
             n = preds.squeeze(1).detach().numpy().tolist()
             print("Logit predictions")
