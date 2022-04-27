@@ -16,7 +16,7 @@ def save_model(model, save_file):
 
 if __name__ == "__main__":
 
-    dw = 100
+    dw = 50
     ds = 384
     dh = 64
     de = 64
@@ -30,8 +30,8 @@ if __name__ == "__main__":
 
    
 
-    #criterion = torch.nn.BCEWithLogitsLoss()
-    criterion = torch.nn.BCELoss()
+    criterion = torch.nn.BCEWithLogitsLoss()
+    #criterion = torch.nn.BCELoss()
     #criterion = torch.nn.CrossEntropyLoss()
 
 
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     test_loss_list = []
     test_acc_list = []
     
-
+    model.train()
     for epoch in range(EPOCHS):
         
         train_epoch_loss = 0.0
@@ -68,9 +68,9 @@ if __name__ == "__main__":
         all_test_y = []
 
         cnt = 0
-        model.train()
+        
         for (Xw, Xs, E, Erev), y in train_loader:
-            print(cnt)
+            #print(cnt)
             cnt+=1
             
 
@@ -81,7 +81,7 @@ if __name__ == "__main__":
             #Accuracy
             n = preds.squeeze(1).detach().numpy().tolist()
             print(n)
-            p = [1  if item > 0.5 else 0 for item in n]
+            p = [1  if item > 0 else 0 for item in n]
             a = y.numpy().tolist()
             print(p)
             print(a)
@@ -93,7 +93,12 @@ if __name__ == "__main__":
             #print(y)
             # compute loss
             loss  = criterion(preds, label.float().unsqueeze(1))
-            #print(loss)
+            # print(preds.shape)
+            # print(criterion(preds, label))
+            # print(criterion(preds, label).unsqueeze(-1))
+            # loss  = criterion(preds, label).unsqueeze(-1)
+
+            print(loss)
             optimizer.zero_grad()
             
             loss.backward() 
@@ -108,7 +113,7 @@ if __name__ == "__main__":
 
        
 
-        #Evaluation
+        # Evaluation
         print("Evaluation")
         model.eval() # prep model for evaluation
         cnt = 0
@@ -122,13 +127,13 @@ if __name__ == "__main__":
 
                 # Accuracy
                 n = preds.squeeze(1).detach().numpy().tolist()
-                p = [1 if item > 0.5 else 0 for item in n]
+                p = [1 if item > 0 else 0 for item in n]
                 a = y.numpy().tolist()
                 print(n)
                 print(p)
                 print(a)
                 for i,v in enumerate(a):
-                    if p[i]==v and p[i]==1:
+                    if p[i]==v:
                         correct_test +=1    
 
                 loss  = criterion(preds, label.float().unsqueeze(1))
