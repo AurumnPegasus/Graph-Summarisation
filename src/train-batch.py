@@ -52,7 +52,7 @@ if __name__ == "__main__":
     
     model.train()
     for epoch in range(EPOCHS):
-        
+        model.train()
         train_epoch_loss = 0.0
         train_examples = 0
         train_loss = 0.0
@@ -70,20 +70,27 @@ if __name__ == "__main__":
         cnt = 0
         
         for (Xw, Xs, E, Erev), y in train_loader:
+            print("Training example")
             #print(cnt)
             cnt+=1
             
 
             preds = model.forward(Xw, Xs, E, Erev)
+            print("Sigmoid scores")
+            print(torch.nn.Sigmoid()(preds))
+
             #print(preds)
             #print(y)
             
             #Accuracy
             n = preds.squeeze(1).detach().numpy().tolist()
+            print("Logit predictions")
             print(n)
             p = [1  if item > 0 else 0 for item in n]
             a = y.numpy().tolist()
+            print("Predicted classes")
             print(p)
+            print("actual classes")
             print(a)
             for i,v in enumerate(a):
                 if p[i]==v:
@@ -125,12 +132,15 @@ if __name__ == "__main__":
                 preds = model.forward(Xw, Xs, E, Erev)
                 label = y
 
-                # Accuracy
+                # Accuracy 
                 n = preds.squeeze(1).detach().numpy().tolist()
                 p = [1 if item > 0 else 0 for item in n]
                 a = y.numpy().tolist()
+                print("Logit predictions")
                 print(n)
+                print("Predicted classes")
                 print(p)
+                print("actual classes")
                 print(a)
                 for i,v in enumerate(a):
                     if p[i]==v:
