@@ -13,7 +13,7 @@ from tqdm import tqdm
 from collections import defaultdict
 
 
-class DataLoader(utils.data.Dataset):
+class Datas(utils.data.Dataset):
     def __init__(self, data_path, edges_path, embeddings_path):
         # loading the sentence transformer
         self.sentence_transformer = SentenceTransformer("all-MiniLM-L6-v2")
@@ -70,14 +70,15 @@ class DataLoader(utils.data.Dataset):
             for word in sentence.keys():
                 if word not in self.embeddings:
                     word = "unk"
-                if word not in self.word2idx:
-                    self.word2idx[word] = len(self.word2idx)
 
                 # Masking token based on probability (MASKED/NUM_WORDS)
                 prob = random.uniform(0, 1)
                 if prob < 0.02 and len(self.sentword2id) < MASKED:
                     self.sentword2id[(str(index), word)] = len(self.sentword2id)
-                Xw.append(self.embeddings[word].tolist())
+
+                if word not in self.word2idx:
+                    self.word2idx[word] = len(self.word2idx)
+                    Xw.append(self.embeddings[word].tolist())
             index += 1
 
         # Adding the masked tokens at the end
@@ -98,7 +99,7 @@ class DataLoader(utils.data.Dataset):
         """
         return torch.tensor(self.sentence_transformer.encode(data["text"])).float()
 
-    def get_E(self, data, edge):
+    def get_E(self, data, edge, w_size):
         """
         gets the edge list, a list of (i, j)
         and the reversed edge list of (j, i)
@@ -108,7 +109,7 @@ class DataLoader(utils.data.Dataset):
 
         adjacency = []
         for i, sentence in enumerate(data["text"]):
-            current = [0]*len(self.word2idx) + [0]*MASKED
+            current = [0]*w_size
             for word in edge[str(i)]:
                 if (str(i), word) not in self.sentword2id:
                     current[self.word2idx[word]] = edge[str(i)][word]
@@ -145,8 +146,9 @@ class DataLoader(utils.data.Dataset):
         edge = json.loads(self.edges[i])
         Xw = self.get_Xw(edge)
         Xs = self.get_Xs(data)
-        E, Erev = self.get_E(data, edge)
+        E, Erev = self.get_E(data, edge, Xw.shape[0])
         y = self.get_labels(data)
+        ic(Xw.shape, Xs.shape, E.shape, Erev.shape)
 
         return (Xw, Xs, E, Erev), y
 
@@ -155,19 +157,13 @@ class DataLoader(utils.data.Dataset):
 
 
 if __name__ == "__main__":
-    data_loader = DataLoader(SAMPLE_DATA_PATH, SAMPLE_EDGE_PATH, EMBEDDING_PATH)
-    for source, target in tqdm(data_loader):
-        Xw, Xs, E, Erev = source[0], source[1], source[2], source[3]
-        ic(Xw.shape, Xs.shape, E.shape, Erev.shape)
-        break
-    for (Xw, Xs, E, Erev), y in data_loader:
-        print("great success")
-        ic(Xw.shape, Xs.shape, E.shape, Erev.shape)
-        print("should havep rinted inc")
-        assert Xw.shape == (488, 50), "Xw is not built properly"
-        assert Xs.shape == (29, 384), "Xs is not built properly"
-        assert E.shape == (2, 488), "E is not built properly"
-        assert Erev.shape == (2, 488), "Erev is not built properly"
-        assert y.shape == (29,), "y is not built properly"
-        break
+    datas = Datas(SAMPLE_DATA_PATH, SAMPLE_EDGE_PATH, EMBEDDING_PATH)
+    dataloader = utils.data.DataLoader(datas)
+    c = 0
+    for source, target in tqdm(dataloader):
+        Xw, Xs, E, Erev = source
+        ic(Xw.shape, Xs.shape, E.shape, Erev.shape, target.shape)
+        c += 1
+        if c == 10:
+            break
     print("success")
