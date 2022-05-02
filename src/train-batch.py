@@ -78,6 +78,7 @@ if __name__ == "__main__":
             #print(cnt)
             cnt+=1
             
+            optimizer.zero_grad()
 
             preds = model.forward(Xw, Xs, E, Erev)
             print("Sigmoid scores")
@@ -114,7 +115,7 @@ if __name__ == "__main__":
             # loss  = criterion(preds, label).unsqueeze(-1)
 
             print(loss)
-            optimizer.zero_grad()
+           
             
             loss.backward() 
             optimizer.step()    
@@ -128,7 +129,7 @@ if __name__ == "__main__":
 
        
 
-        # Evaluation
+        #Evaluation
         print("Evaluation")
         model.eval() # prep model for evaluation
         cnt = 0
