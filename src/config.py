@@ -7,3 +7,7 @@ EMBEDDING_PATH = "../data/glove.6B.50d.txt"
 
 SAMPLE_TEST_DATA_PATH = "../samples/sample.test.label.jsonl"
 SAMPLE_TEST_EDGE_PATH = "../samples/sample.test.w2s.tfidf.jsonl"
+
+MASKED = 10
+EMBEDDING_SIZE = 50
+RANDOMIZER = 0.02

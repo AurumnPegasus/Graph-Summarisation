@@ -32,7 +32,7 @@ if __name__ == "__main__":
     print("created model")
 
     model.to(device)
-   
+
 
     criterion = torch.nn.BCEWithLogitsLoss()
     #criterion = torch.nn.BCELoss()
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     train_acc_list = []
     test_loss_list = []
     test_acc_list = []
-    
+
     model.train()
     for epoch in range(EPOCHS):
         model.train()
@@ -65,19 +65,19 @@ if __name__ == "__main__":
         test_examples = 0
 
         # Training
-        correct_train = 0 
-        correct_test = 0 
+        correct_train = 0
+        correct_test = 0
 
         all_test_preds= []
         all_test_y = []
 
         cnt = 0
-        
+
         for (Xw, Xs, E, Erev), y in train_loader:
             print("Training example")
             #print(cnt)
             cnt+=1
-            
+
 
             preds = model.forward(Xw, Xs, E, Erev)
             print("Sigmoid scores")
@@ -102,7 +102,7 @@ if __name__ == "__main__":
             print(a)
             for i,v in enumerate(a):
                 if p[i]==v:
-                    correct_train +=1    
+                    correct_train +=1
 
             label = y
             #print(y)
@@ -115,18 +115,18 @@ if __name__ == "__main__":
 
             print(loss)
             optimizer.zero_grad()
-            
-            loss.backward() 
-            optimizer.step()    
+
+            loss.backward()
+            optimizer.step()
 
             # loss of the batch
             train_loss += float(loss.item())*y.shape[0]
             train_examples += y.shape[0]
             #print(train_loss)
 
-            
 
-       
+
+
 
         # Evaluation
         print("Evaluation")
@@ -140,7 +140,7 @@ if __name__ == "__main__":
                 preds = model.forward(Xw, Xs, E, Erev)
                 label = y
 
-                # Accuracy 
+                # Accuracy
                 n = preds.squeeze(1).detach().numpy().tolist()
                 p = [1 if item > 0 else 0 for item in n]
                 a = y.numpy().tolist()
@@ -152,7 +152,7 @@ if __name__ == "__main__":
                 print(a)
                 for i,v in enumerate(a):
                     if p[i]==v:
-                        correct_test +=1    
+                        correct_test +=1
 
                 loss  = criterion(preds, label.float().unsqueeze(1))
                 #print(loss)
@@ -162,13 +162,13 @@ if __name__ == "__main__":
 
 
                 # loss of the batch
-                
+
                 test_loss += float(loss.item())*y.shape[0]
 
                 #print(len(y))
                 test_examples += len(y)
                 #print(test_loss)
-        
+
 
         epoch_list.append(epoch)
 
