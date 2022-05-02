@@ -27,7 +27,7 @@ class HeterSumGraph(nn.Module):
         print("created hidden layers")
 
         self.linear5 = nn.Linear(dh, 1)
-        
+
         #self.classifierSigmoid = torch.nn.Sigmoid()
 
     def forward(self, Xw, Xs, E, Erev):
@@ -57,7 +57,7 @@ class HeterSumGraph(nn.Module):
         #r = softmax(results, dim=1)
         #print(r)
         #print(results.shape)
-        return(results) 
+        return(results)
 
         # returning the final states after the iteration
         #return Hw, Hs
@@ -79,7 +79,7 @@ class HeterSumGraph(nn.Module):
 #     E = torch.randint(0, 50, (2, m))
 #     Erev = torch.randint(0, 50, (2, m))
 #     Hw, Hs = model.forward(Xw, Xs, E, Erev)
-    
+
 #     print(Hw.shape)
 #     print(Hs.shape)
 #     assert Hw.shape == (m, dh), "something went wrong for Hw"
