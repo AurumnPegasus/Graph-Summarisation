@@ -16,7 +16,11 @@ model = HeterSumGraph(dw, ds, dh, de, heads)
 print("created model")
 
 for (Xw, Xs, E, Erev), y in data_loader:
+    print(Xw.shape,Xs.shape,E.shape,Erev.shape,y)
+
     Hw, Hs = model.forward(Xw, Xs, E, Erev)
+    print(Hw.shape)
+    print(Hs.shape)
 
     # do the needful with the output
     # may need to add more layers to the model itself
