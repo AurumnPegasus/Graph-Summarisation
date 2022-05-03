@@ -127,7 +127,12 @@ class Datas(utils.data.Dataset):
         1 represents presence in the summary
         0 represents absence
         """
-        return torch.tensor([int(i in data["label"]) for i in range(len(data["text"]))])
+        indices = []
+        words = []
+        for key, value in self.sentword2id.items():
+            words.append(self.word2idx[key[1]])
+            indices.append(value)
+        return torch.LongTensor(indices), torch.LongTensor(words)
 
     def __getitem__(self, i):
         """
@@ -147,10 +152,10 @@ class Datas(utils.data.Dataset):
         Xw = self.get_Xw(edge)
         Xs = self.get_Xs(data)
         E, Erev = self.get_E(data, edge, Xw.shape[0])
-        y = self.get_labels(data)
+        y_index, y_value = self.get_labels(data)
         ic(Xw.shape, Xs.shape, E.shape, Erev.shape)
 
-        return (Xw, Xs, E, Erev), y
+        return (Xw, Xs, E, Erev), (y_index, y_value)
 
     def __len__(self):
         return len(self.data)
