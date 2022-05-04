@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from icecream import ic
 
 class GCNLayer(nn.Module):
     def __init__(self, in_channels, out_channels):

@@ -1,6 +1,7 @@
 import torch
 from gcn import GCNLayer
 import torch.nn as nn
+from icecream import ic
 
 class HeterSumGraph(nn.Module):
     def __init__(self, dw, ds, dh):
@@ -15,22 +16,26 @@ class HeterSumGraph(nn.Module):
         self.gcn2 = GCNLayer(in_channels=dh, out_channels=dh)
         print("created gat layers")
 
-        self.linear3 = nn.Linear(dh, dh)
-        self.linear4 = nn.Linear(dh, dh)
+        self.linear3 = nn.Linear(dh, ds)
+        self.linear4 = nn.Linear(dh, dw)
 
         print("created hidden layers")
+
+        self.ls1 = nn.LogSoftmax(dim=1)
+        self.ls2 = nn.LogSoftmax(dim=1)
 
     def forward(self, Xw, Xs, E, Erev):
 
         Hw = self.linear1(Xw)
         Hs = self.linear2(Xs)
 
-        nHw = self.gcn1(Hs, E)
-        nHs = self.gcn2(Hw, Erev)
+        nHw = self.gcn1(Hs, Erev)
+        nHs = self.gcn2(Hw, E)
 
         Hw = self.linear4(nHw + Hw)
         Hs = self.linear3(nHs + Hs)
 
+        Hw, Hs = self.ls1(Hw), self.ls2(Hs)
         return Hw, Hs
 
 

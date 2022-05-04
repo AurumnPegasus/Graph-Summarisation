@@ -130,9 +130,9 @@ class Datas(utils.data.Dataset):
         indices = []
         words = []
         for key, value in self.sentword2id.items():
-            words.append(self.word2idx[key[1]])
+            words.append(self.embeddings[key[1]])
             indices.append(value)
-        return torch.LongTensor(indices), torch.LongTensor(words)
+        return torch.LongTensor(indices), torch.Tensor(words)
 
     def __getitem__(self, i):
         """
@@ -153,7 +153,6 @@ class Datas(utils.data.Dataset):
         Xs = self.get_Xs(data)
         E, Erev = self.get_E(data, edge, Xw.shape[0])
         y_index, y_value = self.get_labels(data)
-        ic(Xw.shape, Xs.shape, E.shape, Erev.shape)
 
         return (Xw, Xs, E, Erev), (y_index, y_value)
 
